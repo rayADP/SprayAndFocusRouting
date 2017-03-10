@@ -1,0 +1,20 @@
+Message stats for scenario DurasiHariIni
+sim_time: 200000.0000
+created: 33475
+started: 43605
+relayed: 35338
+aborted: 8267
+dropped: 199
+removed: 30457
+delivered: 30587
+delivery_prob: 0.9137
+response_prob: 0.0000
+overhead_ratio: 0.1553
+latency_avg: 7911.1260
+latency_med: 100.9000
+hopcount_avg: 1.0400
+hopcount_med: 1
+buffertime_avg: 8453.0749
+buffertime_med: 102.2000
+rtt_avg: NaN
+rtt_med: NaN

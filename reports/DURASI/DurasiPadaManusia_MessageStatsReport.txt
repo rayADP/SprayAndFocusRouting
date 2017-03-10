@@ -1,0 +1,20 @@
+Message stats for scenario DurasiPadaManusia
+sim_time: 950400.0999
+created: 43829
+started: 53720
+relayed: 43961
+aborted: 9759
+dropped: 0
+removed: 36963
+delivered: 37167
+delivery_prob: 0.8480
+response_prob: 0.0000
+overhead_ratio: 0.1828
+latency_avg: 10896.9102
+latency_med: 116.9000
+hopcount_avg: 1.0492
+hopcount_med: 1
+buffertime_avg: 10395.9622
+buffertime_med: 109.2000
+rtt_avg: NaN
+rtt_med: NaN

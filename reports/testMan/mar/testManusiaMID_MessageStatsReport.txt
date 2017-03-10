@@ -1,0 +1,20 @@
+Message stats for scenario testManusiaMID
+sim_time: 200000.0000
+created: 33475
+started: 43586
+relayed: 35339
+aborted: 8247
+dropped: 205
+removed: 30456
+delivered: 30587
+delivery_prob: 0.9137
+response_prob: 0.0000
+overhead_ratio: 0.1554
+latency_avg: 7910.9944
+latency_med: 100.8000
+hopcount_avg: 1.0399
+hopcount_med: 1
+buffertime_avg: 8478.5738
+buffertime_med: 103.1000
+rtt_avg: NaN
+rtt_med: NaN

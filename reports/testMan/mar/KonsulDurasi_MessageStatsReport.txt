@@ -1,0 +1,20 @@
+Message stats for scenario KonsulDurasi
+sim_time: 21055.0000
+created: 129
+started: 99
+relayed: 98
+aborted: 0
+dropped: 0
+removed: 16
+delivered: 19
+delivery_prob: 0.1473
+response_prob: 0.0000
+overhead_ratio: 4.1579
+latency_avg: 1546.5789
+latency_med: 0.2000
+hopcount_avg: 1.0526
+hopcount_med: 1
+buffertime_avg: 0.1875
+buffertime_med: 0.2000
+rtt_avg: NaN
+rtt_med: NaN

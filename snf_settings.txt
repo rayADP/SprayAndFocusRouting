@@ -1,0 +1,9 @@
+Scenario.name = SprayAndFocus
+Group.router = SprayAndFocusRouter
+SprayAndFocusRouter.nrofCopies = 10
+SprayAndFocusRouter.binaryMode = true
+
+Scenario.name = SprayAndFocus
+Group.router = SprayAndFocusRouterDuration
+SprayAndFocusRouterDuration.nrofCopies = 10
+SprayAndFocusRouterDuration.binaryMode = true

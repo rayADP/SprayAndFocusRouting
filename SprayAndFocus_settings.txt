@@ -1,0 +1,89 @@
+
+#Spray and Focus Scenario
+
+Scenario.name = SprayAndFocus_LE
+Scenario.simulateConnections = true
+Scenario.updateInterval = 0.1
+# 950400s == 11d
+Scenario.endTime = 950400
+
+# diambil standar default setting karena dalam dokumen tidak membahas setting iface bluetooth secara specific
+# "Bluetooth" interface for all nodes
+btInterface.type = SimpleBroadcastInterface
+# Transmit speed of 2 Mbps = 250kBps
+btInterface.transmitSpeed = 250k
+btInterface.transmitRange = 10
+
+# High speed, long range, interface for group 4
+highspeedInterface.type = SimpleBroadcastInterface
+highspeedInterface.transmitSpeed = 10M
+highspeedInterface.transmitRange = 1000
+
+
+
+# Common settings for all groups
+Group.movementModel = RandomWaypoint
+Group.router = SprayAndFocusRouterDuration
+Group.bufferSize = 25M
+Group.waitTime = 0, 120
+# All nodes have the bluetooth interface
+Group.nrofInterfaces = 1
+Group.interface1 = btInterface
+# Walking speeds
+Group.speed = 0.5, 1.5
+# Message TTL of 300 minutes (5 hours)
+Group.msgTtl = 300
+
+Group.nrofHosts = 40
+
+# messageSize use  MessageEventGenerator
+
+## Message creation parameters 
+# How many event generators
+Events.nrof = 1
+# Class of the first event generator
+Events1.class = MessageEventGenerator
+# Message sizes (1MB - 5MB)
+Events1.size = 1M, 5M
+
+# Create Reports
+
+# how many reports to load
+Report.nrofReports = 2
+# length of the warm up period (simulated seconds)
+Report.warmup = 0
+# default directory of reports (can be overridden per Report with output setting)
+Report.reportDir = reports/Skripsi/R3/
+# Report classes to load
+Report.report1 = MessageStatsReport
+Report.report2 = BufferOccupancyReport
+
+## Optimization settings -- these affect the speed of the simulation
+## see World class for details.
+Optimization.cellSizeMult = 5
+Optimization.randomizeUpdateOrder = true
+
+
+## GUI settings
+
+# GUI underlay image settings
+GUI.UnderlayImage.fileName = data/helsinki_underlay.png
+# Image offset in pixels (x, y)
+GUI.UnderlayImage.offset = 64, 20
+# Scaling factor for the image
+GUI.UnderlayImage.scale = 4.75
+# Image rotation (radians)
+GUI.UnderlayImage.rotate = -0.015
+
+# how many events to show in the log panel (default = 30)
+GUI.EventLogPanel.nrofEvents = 100
+# Regular Expression log filter (see Pattern-class from the Java API for RE-matching details)
+#GUI.EventLogPanel.REfilter = .*p[1-9]<->p[1-9]$
+
+
+
+
+
+
+
+

@@ -1,0 +1,20 @@
+Message stats for scenario SprayAndFocus_scenario
+sim_time: 950400.0999
+created: 175104
+started: 217116
+relayed: 149540
+aborted: 67576
+dropped: 45159
+removed: 140568
+delivered: 137725
+delivery_prob: 0.7865
+response_prob: 0.0000
+overhead_ratio: 0.0858
+latency_avg: 199.0079
+latency_med: 0.2000
+hopcount_avg: 1.0013
+hopcount_med: 1
+buffertime_avg: 5683.2518
+buffertime_med: 0.2000
+rtt_avg: NaN
+rtt_med: NaN
