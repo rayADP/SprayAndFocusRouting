@@ -2,9 +2,6 @@ package routing;
 
 import java.util.*;
 
-//import routing.community.CommunityDetection;
-
-
 import core.*;
 
 /**
@@ -15,37 +12,38 @@ import core.*;
  * @author PJ Dillon, University of Pittsburgh
  * Modified by Raymond A.D.P., Sanata Dharma University of Yogyakarta, Indonesia
  */
-public class SprayAndFocusRouterDuration extends ActiveRouter 
+public class SprayAndFocusRouterFrequency extends ActiveRouter 
 {
 	/** SprayAndFocus router's settings name space ({@value})*/ 
-	public static final String SPRAYANDFOCUS_NS = "SprayAndFocusRouterDuration";
+	public static final String SPRAYANDFOCUS_NS = "SprayAndFocusRouterFrequency";
 	/** identifier for the initial number of copies setting ({@value})*/ 
 	public static final String NROF_COPIES_S = "nrofCopies";
-	/** identifier for the difference in timer values needed to forward on a message copy  = menentukan perbedaan nilai waktu yang dibutuhkan untuk maju pada salinan pesan*/
+	/** identifier for the difference in timer values needed to forward on a message copy  = menentukan perbedaan nilai waktu yang dibutuhkan untuk meneruskan salinan pesan*/
 	public static final String TIMER_THRESHOLD_S = "transitivityTimerThreshold";
 	
 	/** Message property key for the remaining available copies of a message */
-	public static final String MSG_COUNT_PROP = "SprayAndFocusDuration.copies";
+	public static final String MSG_COUNT_PROP = "SprayAndFocusRouterFrequency.copies";
 	/** Message property key for summary vector messages exchanged between direct peers */
-	public static final String SUMMARY_XCHG_PROP = "SprayAndFocusDuration.protoXchg";
+	public static final String SUMMARY_XCHG_PROP = "SprayAndFocusRouterFrequency.protoXchg";
 	
 	protected static final String SUMMARY_XCHG_IDPREFIX = "summary";
 	protected static final double defaultTransitivityThreshold = 60.0;
 	protected static int protocolMsgIdx = 0;
 	
 	protected int initialNrofCopies;
-	protected double transitivityTimerThreshold = 0.3;
+	protected double transitivityTimerThreshold;
 	
 	/** Stores information about nodes with which this host has come in contact */
-	protected Map<DTNHost, EncounterInfo> recentEncounters;
+	protected Map<DTNHost, EncounterInfo> FreqEncounters;
+	
 	protected Map<DTNHost, Map<DTNHost, EncounterInfo>> neighborEncounters;
 	
-	//tambah untuk hitung durasi dalam method conUP,down,doExhg
+	
 	protected Map<DTNHost, Double> startTimestamps;
 	//protected Map<DTNHost, List<Duration>> connHistory;
 	
 	
-	public SprayAndFocusRouterDuration(Settings s)
+	public SprayAndFocusRouterFrequency(Settings s)
 	{
 		super(s);
 		Settings snf = new Settings(SPRAYANDFOCUS_NS);
@@ -56,10 +54,10 @@ public class SprayAndFocusRouterDuration extends ActiveRouter
 		else
 			transitivityTimerThreshold = defaultTransitivityThreshold;
 		
-		recentEncounters = new HashMap<DTNHost, EncounterInfo>();
+		FreqEncounters = new HashMap<DTNHost, EncounterInfo>();
 		neighborEncounters = new HashMap<DTNHost, Map<DTNHost, EncounterInfo>>();
 		startTimestamps = new HashMap<DTNHost, Double>();
-		//connHistory = new HashMap<DTNHost, List<Duration>>();
+		
 	}
 	
 	/**
@@ -67,12 +65,12 @@ public class SprayAndFocusRouterDuration extends ActiveRouter
 	 * 
 	 * @param r The router from which settings should be copied
 	 */
-	public SprayAndFocusRouterDuration(SprayAndFocusRouterDuration r)
+	public SprayAndFocusRouterFrequency(SprayAndFocusRouterFrequency r)
 	{
 		super(r);
 		this.initialNrofCopies = r.initialNrofCopies;
 		
-		recentEncounters = new HashMap<DTNHost, EncounterInfo>();
+		FreqEncounters = new HashMap<DTNHost, EncounterInfo>();
 		neighborEncounters = new HashMap<DTNHost, Map<DTNHost, EncounterInfo>>();
 		startTimestamps = new HashMap<DTNHost, Double>();
 		//connHistory = new HashMap<DTNHost, List<Duration>>();
@@ -81,7 +79,7 @@ public class SprayAndFocusRouterDuration extends ActiveRouter
 	@Override
 	public MessageRouter replicate() 
 	{
-		return new SprayAndFocusRouterDuration(this);
+		return new SprayAndFocusRouterFrequency(this);
 	}
 
 	/**
@@ -105,20 +103,23 @@ public class SprayAndFocusRouterDuration extends ActiveRouter
 		DTNHost peer = con.getOtherNode(thisHost);
 		
 		//do this when con is up and goes down (might have been up for awhile)
-		if(recentEncounters.containsKey(peer)){ 
-			EncounterInfo info = recentEncounters.get(peer);
+		if(FreqEncounters.containsKey(peer)){ 
+			EncounterInfo info = FreqEncounters.get(peer);
 			if(con.isUp()){
-				info.updateEncounterTime(SimClock.getTime(),"start");
-			}else{
-				info.updateEncounterTime(SimClock.getTime(),"end");
-				System.out.println("node "+thisHost+" peer "+peer.getAddress()+" durasi   "+info.getDurationTime());
+//				info.updateEncounterFreq(info.getFreq());
+				info.updateFreq();
+				System.out.println("node "+thisHost+" peer "+peer.getAddress()+" freq "+info.getFreq() );	
 			}
-			recentEncounters.put(peer, info);
+			FreqEncounters.put(peer, info);
+			
 		}else{
 			if(con.isUp()){
-				recentEncounters.put(peer, new EncounterInfo(SimClock.getTime()));
+				EncounterInfo baru=new EncounterInfo();
+				baru.updateFreq();
+				System.out.println("node "+thisHost+" peer "+peer.getAddress()+" freq "+baru.getFreq() );
+				FreqEncounters.put(peer, baru);
 			}
-//			recentEncounters.put(peer, new EncounterInfo(SimClock.getTime()));
+//			FreqEncounters.put(peer, new EncounterInfo(SimClock.getTime()));
 		}
 		
 		if(!con.isUp()){
@@ -128,12 +129,12 @@ public class SprayAndFocusRouterDuration extends ActiveRouter
 		
 		/*
 		 * For this simulator, we just need a way to give the other node in this connection
-		 * access to the peers we recently encountered; so we duplicate the recentEncounters
+		 * access to the peers we recently encountered; so we duplicate the FreqEncounters
 		 * Map and attach it to a message.se
 		 */
-		int msgSize = recentEncounters.size() * 64 + getMessageCollection().size() * 8;
+		int msgSize = FreqEncounters.size() * 64 + getMessageCollection().size() * 8;
 		Message newMsg = new Message(thisHost, peer, SUMMARY_XCHG_IDPREFIX + protocolMsgIdx++, msgSize);
-		newMsg.addProperty(SUMMARY_XCHG_PROP, /*new HashMap<DTNHost, EncounterInfo>(*/recentEncounters);
+		newMsg.addProperty(SUMMARY_XCHG_PROP, /*new HashMap<DTNHost, EncounterInfo>(*/FreqEncounters);
 		
 		createNewMessage(newMsg);
 	}
@@ -141,6 +142,7 @@ public class SprayAndFocusRouterDuration extends ActiveRouter
 	@Override
 	public boolean createNewMessage(Message m)
 	{
+		
 		makeRoomForNewMessage(m.getSize());
 
 		m.addProperty(MSG_COUNT_PROP, new Integer(initialNrofCopies));
@@ -166,7 +168,7 @@ public class SprayAndFocusRouterDuration extends ActiveRouter
 			if(speed == 0.0) return m;
 			
 			
-			double timediff = distTo/speed;
+//			double timediff = distTo/speed;
 //			System.out.println("weeeeeeek");
 			/*
 			 * We save the peer info for the utility based forwarding decisions, which are
@@ -180,7 +182,7 @@ public class SprayAndFocusRouterDuration extends ActiveRouter
 				if(h == getHost()) continue;
 				
 				EncounterInfo peerEncounter = entry.getValue();
-				EncounterInfo info = recentEncounters.get(h);
+				EncounterInfo info = FreqEncounters.get(h);
 				
 				/*
 				 * We set our timestamp for some node, h, with whom our peer has come in contact
@@ -189,20 +191,20 @@ public class SprayAndFocusRouterDuration extends ActiveRouter
 				 * The paper describes timers that count up from the time of contact. We use
 				 * fixed timestamps here to accomplish the same effect, but the computations
 				 * here are consequently a little different from the paper. 
+				 * 
+				 * 
 				 */
-				if(!recentEncounters.containsKey(h))
-				{
-					info = new EncounterInfo(peerEncounter.getDurationTime() - timediff);
-					recentEncounters.put(h, info);
-					continue;
-				}
+//				if(!FreqEncounters.containsKey(h)){
+//					info = new EncounterInfo();
+//					FreqEncounters.put(h, info);
+//					continue;
+//				}
 				
 				
-				if(info.getDurationTime()+ timediff < peerEncounter.getDurationTime())
-				{
-					recentEncounters.get(h).updateEncounterTime(peerEncounter.getDurationTime()- 
-							timediff,null);
-				}
+//				if(info.getFreq() < peerEncounter.getFreq())
+//				{
+//					FreqEncounters.get(h).updateEncounterFreq(peerEncounter.getFreq());
+//				}
 			}
 			return m;
 		}
@@ -219,9 +221,7 @@ public class SprayAndFocusRouterDuration extends ActiveRouter
 	}
 
 	@Override
-	protected void transferDone(Connection con) 
-	
-	{
+	protected void transferDone(Connection con){
 		Integer nrofCopies;
 		String msgId = con.getMessage().getId();
 		/* get this router's copy of the message */
@@ -231,6 +231,7 @@ public class SprayAndFocusRouterDuration extends ActiveRouter
 			return; // ..start of transfer -> no need to reduce amount of copies
 		}
 		
+		// terkirim ke final destination (kasus #2)
 		if(msg.getProperty(SUMMARY_XCHG_PROP) != null)
 		{
 			deleteMessage(msgId, false);
@@ -290,36 +291,37 @@ public class SprayAndFocusRouterDuration extends ActiveRouter
 				 */
 				DTNHost dest = m.getTo();
 				Connection toSend = null;
-				double maxPeerLastSeen = 0.0; //beginning of time (simulation time)
+				int maxPeerLastFreq = 0; //beginning of time (simulation time)
 				
 				//Get the timestamp of the last time this Host saw the destination
-				double thisLastSeen = getEncounterDurationTimeForHost(dest);
-//				double margin = thisLastSeen*0.2;
-				
-				for(Connection c : getConnections())
-				{
+				int thisFreq = getFreqEncounterForHost(dest);
+				double margin = thisFreq*0.3;
+				for(Connection c : getConnections()){
 					DTNHost peer = c.getOtherNode(getHost());
 					Map<DTNHost, EncounterInfo> peerEncounters = neighborEncounters.get(peer);
-					double peerLastSeen = 0.0;
+					int peerLastFreq = 0;
 					
 					if(peerEncounters != null && peerEncounters.containsKey(dest))
-						peerLastSeen = neighborEncounters.get(peer).get(dest).getDurationTime();
+						peerLastFreq = neighborEncounters.get(peer).get(dest).getFreq();
 					
 					/*
 					 * We need to pick only one peer to send the copy on to; so lets find the
 					 * one with the newest encounter time.
 					 */
 					
-						if(peerLastSeen > maxPeerLastSeen)
+						if(peerLastFreq > maxPeerLastFreq)
 						{
 							toSend = c;
-							maxPeerLastSeen = peerLastSeen;
+							maxPeerLastFreq = peerLastFreq;
+//							System.out.println(maxpeerLastFreq);
 						}
 							
 				}
-				if (toSend != null && maxPeerLastSeen > thisLastSeen + thisLastSeen*transitivityTimerThreshold)
-				{
-					focuslist.add(new Tuple<Message, Connection>(m	, toSend));
+				//if (toSend != null && maxpeerLastFreq > thisFreq + margin)
+				if (toSend != null && maxPeerLastFreq > thisFreq + margin){
+//					System.out.println("max :"+maxpeerLastFreq+" this : "+thisFreq);
+					focuslist.add(new Tuple<Message, Connection>(m, toSend));
+//					System.out.println("focus");
 				}
 			}
 		}
@@ -334,12 +336,12 @@ public class SprayAndFocusRouterDuration extends ActiveRouter
 		}
 	}
 
-	protected double getEncounterDurationTimeForHost(DTNHost host)
+	protected int getFreqEncounterForHost(DTNHost host)
 	{
-		if(recentEncounters.containsKey(host))
-			return recentEncounters.get(host).getDurationTime();
+		if(FreqEncounters.containsKey(host))
+			return FreqEncounters.get(host).getFreq();
 		else
-			return 0.0;
+			return 0;
 	}
 	
 	//tambah untuk hitung durasi
@@ -352,17 +354,7 @@ public class SprayAndFocusRouterDuration extends ActiveRouter
 	 * 
 	 * @see routing.RoutingDecisionEngine#doExchangeForNewConnection(core.Connection, core.DTNHost)
 	 */
-	
-	protected double getDurationEncounterTimeForHost(DTNHost host)
-	{
-		if(recentEncounters.containsKey(host))
-			return recentEncounters.get(host).getDurationTime();
-		else
-			return 0.0;
-	}
-	
-	
-	
+
 	/**
 	 * Stores all necessary info about encounters made by this host to some other host.
 	 * At the moment, all that's needed is the timestamp of the last time these two hosts
@@ -372,61 +364,23 @@ public class SprayAndFocusRouterDuration extends ActiveRouter
 	 */
 	protected class EncounterInfo
 	{
+
+		protected int FreqTime;
+
+		public EncounterInfo(){
+			this.FreqTime= 0;
+		}
 		
+		public void updateEncounterFreq(){
+			updateFreq();
+		}
 		//tambah
-		protected double DurationTime;
-		protected double startTime;
-		protected double endTime;
-		//List<Duration> history;
-		public EncounterInfo(double atTime)
-		{
-			
-			this.DurationTime = atTime;
-			this.startTime = atTime;
-			this.endTime = atTime;
-		}
-		
-		public void updateEncounterTime(double atTime,String state)
-		{
-			if(state=="start"){
-				updateStartTime(atTime);
-			}else if(state=="end"){
-				updateEndTime(atTime);
-				if(getEndTime()-getStartTime()>0){
-					updateDurationTime(getDurationTime()+(getEndTime()-getStartTime()));
-				}
-			}else{
-				this.DurationTime = atTime;
-			}
-//			
-		}
-		
-		
-		
-		public double getDurationTime()
-		{
-			return DurationTime;
+		public int getFreq(){
+			return FreqTime;
 		}		
-		public void updateDurationTime(double atTime)
-		{
-			this.DurationTime = atTime;
+		public void updateFreq(){
+			this.FreqTime++;
 		}
 		
-		public double getStartTime()
-		{
-			return startTime;
-		}		
-		public void updateStartTime(double atTime)
-		{
-			this.startTime = atTime;
-		}
-		public double getEndTime()
-		{
-			return endTime;
-		}		
-		public void updateEndTime(double atTime)
-		{
-			this.endTime = atTime;
-		}
 	}
 }
